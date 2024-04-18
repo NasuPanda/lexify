@@ -6,7 +6,7 @@ console.dir(import.meta.env);
 
 const App: FC = () => (
   <>
-    <h1>Hello, RailsAPi and React by Docker</h1>
+    <h1>Hello, FastAPI and React /w Docker</h1>
   </>
 );
 

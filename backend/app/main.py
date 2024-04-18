@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from fastapi import FastAPI, HTTPException, File, UploadFile, Depends
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
@@ -26,6 +26,18 @@ engine = create_engine(database_url)
 users_db = {"user@example.com": {"username": "user@example.com", "password": "secret"}}
 cards_db = []
 reviews_db = []
+
+# Check the connection to the database by executing a simple SQL query
+@app.get("/test-db")
+async def test_db():
+    try:
+        # Execute a simple SQL query to fetch the current date
+        with engine.connect() as connection:
+            result = connection.execute(text("SELECT NOW()"))
+            current_time = result.fetchone()
+        return {"message": "Database connection successful", "current_time": str(current_time)}
+    except Exception as e:
+        return {"error": str(e)}
 
 # Pydantic models for data validation
 class ConfidenceLevel(Enum):

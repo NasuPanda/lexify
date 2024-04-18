@@ -1,11 +1,26 @@
+import os
+from sqlalchemy import create_engine
 from fastapi import FastAPI, HTTPException, File, UploadFile, Depends
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
 from pydantic import BaseModel, EmailStr, constr, validator
 from datetime import datetime
 from enum import Enum
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:9999"],  # Allows requests from the frontend
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Connect db using DATABASE_URL from the environment variable
+database_url = os.getenv('DATABASE_URL')
+engine = create_engine(database_url)
 
 # Mock database for demonstration purposes
 users_db = {"user@example.com": {"username": "user@example.com", "password": "secret"}}

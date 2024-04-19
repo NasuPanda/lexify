@@ -1,5 +1,12 @@
 # Lexify
 
+## Setup
+NOTE: Note that the docker-compose configurations for development/production environments aren't made. Just yet.
+
+1. `git clone https://github.com/NasuPanda/lexify`
+2. `cd lexify`
+3. `docker-compose up --build`
+
 ## 1. Background
 
 This application is designed to assist in vocabulary expansion during English language learning. It was created as a personal project to avoid the costs associated with similar applications while providing tailored functionality.

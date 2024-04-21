@@ -1,7 +1,15 @@
+from fastapi.testclient import TestClient
+from app.main import app
 from unittest.mock import Mock
 import pytest
-from app.services.card_service import create_card
+from app.services.card_service import create_card, get_card_by_id
 from app.schemas.card import CardCreate
+
+client = TestClient(app)
+
+@pytest.fixture
+def mock_db():
+    return Mock()
 
 @pytest.fixture
 def card_data():
@@ -11,8 +19,12 @@ def card_data():
         example_sentence="Don't forget to be an example!"
     )
 
-def test_create_card(card_data):
-    mock_db = Mock()
+# Unit test for card_service
+def test_get_card_by_id(mock_db):
+    # Assume db and setup are mocked or a fixture is used
+    assert get_card_by_id(mock_db, 1, 1).id == 1
+
+def test_create_card(mock_db, card_data):
     user_id = 1  # Assuming a user ID is needed for card creation
 
     # Call the service function

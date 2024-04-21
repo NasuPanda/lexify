@@ -1,6 +1,6 @@
-from models.user_model import User
-from schemas.user import UserRegister, UserLogin
-from core.security import hash_password, verify_password
+from app.models.user_model import User
+from app.schemas.user import UserRegister, UserLogin
+from app.core.security import hash_password, verify_password
 
 def create_user(user_data: UserRegister):
     hashed_password = hash_password(user_data.password)

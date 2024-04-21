@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
-from models import User
-from schemas.user import UserRegister, UserLogin
-from services.auth_service import create_user, authenticate_user
+from app.models import User
+from app.schemas.user import UserRegister, UserLogin
+from app.services.auth_service import create_user, authenticate_user
 
 router = APIRouter()
 

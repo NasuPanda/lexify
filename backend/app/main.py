@@ -72,21 +72,6 @@ class Review(BaseModel):
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-# Authentication routes
-@app.post("/auth/register")
-async def register_user(user: User):
-    if user.username in users_db:
-        raise HTTPException(status_code=400, detail="Username already registered")
-    users_db[user.username] = user.dict()
-    return {"message": "User registered successfully"}
-
-@app.post("/auth/login")
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user_dict = users_db.get(form_data.username)
-    if not user_dict or user_dict['password'] != form_data.password:
-        raise HTTPException(status_code=401, detail="Invalid username or password")
-    return {"access_token": user_dict["username"], "token_type": "bearer"}
-
 # Card management routes
 @app.post("/cards/")
 async def create_card(card: Card):

@@ -1,15 +1,6 @@
 from datetime import datetime
-from pydantic import BaseModel, Field, Optional
-
-"""
-NOTE:
-- Don't forget to modify: examples -> example_sentence
-- Be attentive to potential lacks of attributes/module imports
-
-PUT /cards/{card_id}: Updates a specific card by its ID.
-DELETE /cards/{card_id}: Deletes a specific card by its ID.
-GET /cards: Lists all cards for the logged-in user.
-"""
+from pydantic import BaseModel, Field
+from typing import Optional
 
 class CardResponse(BaseModel):
     """GET /cards/{card_id}"""

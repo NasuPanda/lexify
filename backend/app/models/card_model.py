@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func
 from app.core.database import Base
 
 class Card(Base):
@@ -11,3 +11,6 @@ class Card(Base):
     example_sentence = Column(String, nullable=True)
     image_url = Column(String, nullable=True)
     audio_url = Column(String, nullable=True)
+    # SQLAlchemy handles created_at and updated_at automatically
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())

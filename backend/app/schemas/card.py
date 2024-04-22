@@ -11,8 +11,8 @@ class CardResponse(BaseModel):
     example_sentence: Optional[str]
     image_url: Optional[str]
     audio_url: Optional[str]
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         orm_mode = True
@@ -26,8 +26,8 @@ class CardCreate(BaseModel):
     audio_url: Optional[str] = Field(None, example="http://example.com/audio.mp3")
 
 class CardUpdate(BaseModel):
-    term: str = Field(None, example="Updated term")
-    definition: str = Field(None, example="Updated definition")
+    term: Optional[str] = Field(None, example="Updated term")
+    definition: Optional[str] = Field(None, example="Updated definition")
     example_sentence: Optional[str] = Field(None, example="Pumpkin and penguins!")
     image_url: Optional[str] = Field(None, example="http://example.com/updated_image.png")
     audio_url: Optional[str] = Field(None, example="http://example.com/updated_audio.mp3")

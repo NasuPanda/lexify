@@ -79,7 +79,7 @@ def test_create_new_card():
         response = client.post("/cards", json=card_data)
 
     # Check the response from API
-    assert response.status_code == 200
+    assert response.status_code == 201
     assert response.json() == {"message": "Card created successfully", "card_id": 1}
 
 def test_update_card_details():

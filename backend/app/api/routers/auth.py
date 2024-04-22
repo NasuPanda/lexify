@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status
-from app.models import User
+from app.models.user_model import User
 from app.schemas.user import UserRegister, UserLogin
 from app.services.auth_service import create_user, authenticate_user
 

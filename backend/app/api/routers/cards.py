@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.models import User
+from app.models.user_model import User
 from app.schemas.card import CardCreate, CardResponse, CardUpdate
 from app.services.card_service import create_card, delete_card, get_card_by_id, get_cards_by_user_id, update_card as update_card_service
 from app.dependencies import get_current_user, get_db

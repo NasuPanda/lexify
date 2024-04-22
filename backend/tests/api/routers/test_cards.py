@@ -74,9 +74,27 @@ def test_update_card_details():
         # Create a mock card using our helper function
         create_mock_card(mock_session, user_id)
 
-        # Attempt to retrieve the mock card
-        __response = client.get("/cards/1")
-
     response = client.put("/cards/1", json={"term": "Updated term"})
     assert response.status_code == 200
     assert response.json()['term'] == "Updated term"
+
+def test_delete_card_endpoint(mock_db):
+    user_id = 1  # Mocked user ID for authentication
+    card_id = 1
+
+    # Setup: Mock the dependencies
+    with patch('app.api.routers.cards.get_db') as mock_db, \
+        patch('app.api.routers.cards.get_current_user', return_value={'id': user_id}):
+
+        # Assuming get_db is properly mocked to provide a Session object that would work with our mock
+        mock_session = Mock(spec=Session)
+        mock_db.return_value = mock_session
+
+        # Create a mock card using our helper function
+        create_mock_card(mock_session, user_id)
+
+        # Get the response from /DELETE
+        response = client.delete(f"/cards/{card_id}")
+
+    assert response.status_code == 204
+    assert response.json() == {"message": "Card deleted successfully"}

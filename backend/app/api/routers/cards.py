@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.models import User
 from app.schemas.card import CardCreate, CardResponse, CardUpdate
-from app.services.card_service import create_card, delete_card, get_card_by_id, update_card
+from app.services.card_service import create_card, delete_card, get_card_by_id, get_cards_by_user_id, update_card
 from app.dependencies import get_current_user, get_db
 
 router = APIRouter()
@@ -13,6 +13,10 @@ async def retrieve_card(card_id: int, db: Session = Depends(get_db), current_use
     if not card:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Card not found")
     return card
+
+@router.get("/cards", response_model=CardResponse)
+async def list_cards(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return get_cards_by_user_id(db=db, user_id=current_user.user_id)
 
 @router.post("/cards")
 async def create_new_card(

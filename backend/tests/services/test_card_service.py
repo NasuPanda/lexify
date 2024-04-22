@@ -2,7 +2,7 @@ from fastapi.testclient import TestClient
 from app.main import app
 from unittest.mock import Mock
 import pytest
-from app.services.card_service import create_card, get_card_by_id
+from app.services.card_service import create_card, get_card_by_id, update_card
 from app.schemas.card import CardCreate
 
 client = TestClient(app)
@@ -19,7 +19,6 @@ def card_data():
         example_sentence="Don't forget to be an example!"
     )
 
-# Unit test for card_service
 def test_get_card_by_id(mock_db):
     # Assume db and setup are mocked or a fixture is used
     assert get_card_by_id(mock_db, 1, 1).id == 1
@@ -38,3 +37,13 @@ def test_create_card(mock_db, card_data):
     assert card.term == card_data.term
     assert card.definition == card_data.definition
     assert card.user_id == user_id
+
+def test_update_card():
+    # Save the original term and update it
+    original_term = card_data["term"]
+    updated_term = "Updated term"
+    card_data["term"] = updated_term
+    updated_card = update_card(db=mock_db, card_id=1, user_id=1, card_data=card_data).term
+
+    assert updated_card.term == updated_term
+    assert updated_card.term != original_term

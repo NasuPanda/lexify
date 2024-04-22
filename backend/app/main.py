@@ -8,8 +8,11 @@ from datetime import datetime
 from enum import Enum
 
 from app.core.database import engine
+from app.api.routers import cards
 
 app = FastAPI()
+# Mount the routers
+app.include_router(cards.router)
 
 app.add_middleware(
     CORSMiddleware,

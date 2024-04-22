@@ -44,6 +44,28 @@ def test_retrieve_card():
     assert response.json()['id'] == 1
     assert response.json()['term'] == "Example"
 
+def test_list_cards():
+    user_id = 1  # Mocked user ID for authentication
+    number_of_cards = 10
+
+    # Setup: Mock the dependencies
+    with patch('app.api.routers.cards.get_db') as mock_db, \
+        patch('app.api.routers.cards.get_current_user', return_value={'id': user_id}):
+
+        # Assuming get_db is properly mocked to provide a Session object that would work with our mock
+        mock_session = Mock(spec=Session)
+        mock_db.return_value = mock_session
+
+        # Create mock cards
+        [create_mock_card(mock_session, user_id) for __ in range(number_of_cards)]
+
+        # Attempt to retrieve the mock card
+        response = client.get("/cards")
+
+    assert response.status_code == 200
+    assert isinstance(response.json(), list) # Verify that a list is returned
+    assert len(response.json()) == number_of_cards
+
 def test_create_new_card():
     card_data = {
         "term": "Example",

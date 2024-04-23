@@ -7,7 +7,7 @@ from app.core.security import hash_password, verify_password
 
 def get_user_by_username(db: Session, username: str) -> Optional[User]:
     """Retrieve a single User by its name."""
-    return db.query(User).filter_by(User.username == username).first()
+    return db.query(User).filter_by(username=username).first()
 
 def create_user(db: Session, user_data: UserRegister) -> Optional[User]:
     existing_user = get_user_by_username(db, user_data.username)

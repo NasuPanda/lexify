@@ -8,11 +8,12 @@ from datetime import datetime
 from enum import Enum
 
 from app.core.database import engine
-from app.api.routers import cards
+from app.api.routers import cards, auth
 
 app = FastAPI()
 # Mount the routers
 app.include_router(cards.router)
+app.include_router(auth.router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,11 +22,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-class User(BaseModel):
-    username: str
-    password: str
-    email: Optional[EmailStr] = None
 
 class ConfidenceLevel(Enum):
     HIGH = 'High'

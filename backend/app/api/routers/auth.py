@@ -10,10 +10,11 @@ router = APIRouter()
 
 @router.post("/auth/register")
 async def register(user_data: UserRegister, db: Session = Depends(get_db)) -> User:
-    user = create_user(db=db, user_data=user_data)
-    if user:
+    try:
+        user = create_user(db=db, user_data=user_data)
         return user
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Error registering user")
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 @router.post("/auth/login")
 async def login(user_data: UserLogin, db: Session = Depends(get_db)) -> dict:

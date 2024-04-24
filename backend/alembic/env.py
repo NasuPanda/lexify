@@ -30,12 +30,7 @@ target_metadata = Base.metadata
 # Other setups from the config, if any, should be included below
 # e.g., a custom database URL
 # Ensure the DATABASE_URL is correctly configured
-sqlalchemy_url = config.get_main_option("sqlalchemy.url")
-if not sqlalchemy_url:
-    import os
-    sqlalchemy_url = os.getenv('DATABASE_URL')
-    config.set_main_option('sqlalchemy.url', sqlalchemy_url)
-
+config.set_main_option('sqlalchemy.url', os.getenv('DATABASE_URL'))
 
 def run_migrations_offline():
     """Run migrations in 'offline' mode.

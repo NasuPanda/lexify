@@ -11,12 +11,14 @@ python-multipart = "*"
 sqlalchemy = "*"
 psycopg2-binary = "*"
 bcrypt = "*"
+pytest-asyncio = "*"
 
 [dev-packages]
 pytest-asyncio = "*"
 httpx = "*"
 requests = "*"
 pytest-mock = "*"
+pytest = "*"
 
 [requires]
 python_version = "3.10"

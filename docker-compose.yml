@@ -10,6 +10,13 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
+    # Heatlthcheck: `depends_on` ensures only that the database container starts before the backend container,
+    # but it doesn't guarantee that the database service within the container is ready.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     ports:
       - "5432:5432"
 
@@ -19,11 +26,13 @@ services:
       context: .
       dockerfile: Dockerfile.backend
     # command: uvicorn app.main:app --host '0.0.0.0' --port 8000 # Production
-    command: uvicorn app.main:app --host '0.0.0.0' --port 8000 --reload # Development
+    command: bash -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload" # Development
+    # command: bash -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000" # Production
     volumes:
       - ./backend:/backend
     depends_on:
-      - db
+      db:
+        condition: service_healthy # wait for the database to be healthy before starting the backend service
     ports:
       - "8000:8000"
     environment:

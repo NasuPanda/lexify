@@ -15,8 +15,8 @@ def mock_db(mocker):
     session_mock.add = mocker.Mock()
     session_mock.commit = mocker.Mock()
     session_mock.delete = mocker.Mock()
-    session_mock.query.return_value.filter.return_value.first.return_value = None
-    session_mock.query.return_value.filter.return_value.all.return_value = []
+    session_mock.query.return_value.filter_by.return_value.first.return_value = None
+    session_mock.query.return_value.filter_by.return_value.all.return_value = []
     return session_mock
 
 @pytest.fixture
@@ -41,30 +41,38 @@ def updated_card_data():
         example_sentence="Always remember to update examples!"
     )
 
+@pytest.fixture
+def mock_cards(mocker):
+    # Default setup, can be overridden in each test
+    def _create_mock_cards(user_id, number_of_cards):
+        mock_cards = [mocker.Mock(spec=Card, user_id=user_id) for _ in range(number_of_cards)]
+        return mock_cards
+    return _create_mock_cards
+
 def test_get_card_by_id(mock_db, mock_card):
     user_id = 1
     card_id = 1
     mock_card.id = card_id
     mock_card.user_id = user_id
-    mock_db.query.return_value.filter.return_value.first.return_value = mock_card
+    mock_db.query.return_value.filter_by.return_value.first.return_value = mock_card
 
     card = get_card_by_id(mock_db, card_id, user_id)
 
     assert card is mock_card
     mock_db.query.assert_called_with(Card)
-    mock_db.query.return_value.filter.return_value.first.assert_called_once()
+    mock_db.query.return_value.filter_by.return_value.first.assert_called_once()
 
-def test_get_cards_by_user_id(mock_db, mock_card):
+def test_get_cards_by_user_id(mock_db, mock_cards):
     number_of_cards = 10
     user_id = 1
-    mock_cards = [mock_card for _ in range(number_of_cards)]
-    mock_db.query.return_value.filter.return_value.all.return_value = mock_cards
+    mock_cards = mock_cards(user_id, number_of_cards)
+    mock_db.query.return_value.filter_by.return_value.all.return_value = mock_cards
 
     cards = get_cards_by_user_id(mock_db, user_id)
 
     assert len(cards) == number_of_cards
     mock_db.query.assert_called_with(Card)
-    mock_db.query.return_value.filter.assert_called_with(Card.user_id == user_id)
+    mock_db.query.return_value.filter_by.assert_called_with(user_id=cards[0].user_id)
 
 def test_create_card(mock_db, card_data):
     user_id = 1
@@ -81,7 +89,7 @@ def test_update_card(mock_db, mock_card, updated_card_data):
     user_id = 1
     mock_card.id = card_id
     mock_card.user_id = user_id
-    mock_db.query.return_value.filter.return_value.first.return_value = mock_card
+    mock_db.query.return_value.filter_by.return_value.first.return_value = mock_card
 
     card = update_card(mock_db, card_id, user_id, updated_card_data)
 
@@ -94,7 +102,7 @@ def test_delete_card(mock_db, mock_card):
     user_id = 1
     mock_card.id = card_id
     mock_card.user_id = user_id
-    mock_db.query.return_value.filter.return_value.first.return_value = mock_card
+    mock_db.query.return_value.filter_by.return_value.first.return_value = mock_card
 
     is_deleted = delete_card(mock_db, card_id, user_id)
 

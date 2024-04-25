@@ -2,10 +2,6 @@ from sqlalchemy import text
 from fastapi import FastAPI, File, UploadFile
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Optional
-from pydantic import BaseModel, EmailStr
-from datetime import datetime
-from enum import Enum
 
 from app.core.database import engine
 from app.api.routers import cards, auth
@@ -23,20 +19,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class ConfidenceLevel(Enum):
-    HIGH = 'High'
-    MEDIUM = 'Medium'
-    LOW = 'Low'
-
-class Review(BaseModel):
-    card_id: int
-    user_id: int
-    review_date: datetime
-    confidence_level: ConfidenceLevel
-    last_reviewed: Optional[datetime] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # Check the connection to the database by executing a simple SQL query (for testing)
@@ -52,11 +34,6 @@ async def test_db():
     except Exception as e:
         return {"error": str(e)}
 
-@app.post("/reviews/")
-async def create_review(review: Review):
-    reviews_db = []
-    reviews_db.append(review.dict())
-    return review
 
 @app.post("/upload/image")
 async def upload_image(file: UploadFile = File(...)):

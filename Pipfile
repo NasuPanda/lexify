@@ -12,6 +12,7 @@ sqlalchemy = "*"
 psycopg2-binary = "*"
 bcrypt = "*"
 pytest-asyncio = "*"
+alembic = "*"
 
 [dev-packages]
 pytest-asyncio = "*"

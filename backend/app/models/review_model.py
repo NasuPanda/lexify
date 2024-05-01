@@ -2,8 +2,6 @@ from sqlalchemy import Column, Integer, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 
-from app.models.user_model import User
-
 class ReviewSchedule(Base):
     __tablename__ = "review_schedules"
 

@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "e208c0dc1bf3214c26a81142483fff572f61cf504ba7890dbb2f85d9c96878ad"
+            "sha256": "eebdeebe227afb6d4f409f3eec1e6196666bf353e82d71e961c9ddcfe74fb747"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -381,6 +381,14 @@
             ],
             "index": "pypi",
             "version": "==0.23.6"
+        },
+        "pytest-env": {
+            "hashes": [
+                "sha256:aada77e6d09fcfb04540a6e462c58533c37df35fa853da78707b17ec04d17dfc",
+                "sha256:fcd7dc23bb71efd3d35632bde1bbe5ee8c8dc4489d6617fb010674880d96216b"
+            ],
+            "index": "pypi",
+            "version": "==1.1.3"
         },
         "python-dotenv": {
             "hashes": [
@@ -864,6 +872,14 @@
             ],
             "index": "pypi",
             "version": "==0.23.6"
+        },
+        "pytest-env": {
+            "hashes": [
+                "sha256:aada77e6d09fcfb04540a6e462c58533c37df35fa853da78707b17ec04d17dfc",
+                "sha256:fcd7dc23bb71efd3d35632bde1bbe5ee8c8dc4489d6617fb010674880d96216b"
+            ],
+            "index": "pypi",
+            "version": "==1.1.3"
         },
         "pytest-mock": {
             "hashes": [

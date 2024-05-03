@@ -1,19 +1,16 @@
 from sqlalchemy import text
-from fastapi import FastAPI, File, UploadFile
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Optional
-from pydantic import BaseModel, EmailStr
-from datetime import datetime
-from enum import Enum
 
+from app.models import * # Import models to ensure SQLAlchemy is aware of them
 from app.core.database import engine
-from app.api.routers import cards, auth
+from app.api.routers import cards, auth, reviews
 
 app = FastAPI()
 # Mount the routers
 app.include_router(cards.router)
 app.include_router(auth.router)
+app.include_router(reviews.router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,22 +19,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-class ConfidenceLevel(Enum):
-    HIGH = 'High'
-    MEDIUM = 'Medium'
-    LOW = 'Low'
-
-class Review(BaseModel):
-    card_id: int
-    user_id: int
-    review_date: datetime
-    confidence_level: ConfidenceLevel
-    last_reviewed: Optional[datetime] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # Check the connection to the database by executing a simple SQL query (for testing)
 # TODO Remove this function
@@ -51,20 +32,6 @@ async def test_db():
         return {"message": "Database connection successful", "current_time": str(current_time)}
     except Exception as e:
         return {"error": str(e)}
-
-@app.post("/reviews/")
-async def create_review(review: Review):
-    reviews_db = []
-    reviews_db.append(review.dict())
-    return review
-
-@app.post("/upload/image")
-async def upload_image(file: UploadFile = File(...)):
-    return {"filename": file.filename, "url": f"http://example.com/{file.filename}"}
-
-@app.post("/upload/audio")
-async def upload_audio(file: UploadFile = File(...)):
-    return {"filename": file.filename, "url": f"http://example.com/{file.filename}"}
 
 if __name__ == "__main__":
     import uvicorn

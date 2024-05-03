@@ -1,9 +1,10 @@
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.main import app
-from app.services.card_service import create_card, delete_card, get_card_by_id, update_card, get_cards_by_user_id
+from app.services.card_service import create_card, delete_card, get_card_by_id, get_card_details_by_id, update_card, get_cards_by_user_id
 from app.schemas.card import CardCreate, CardUpdate
 from app.models.card_model import Card
 
@@ -22,6 +23,12 @@ def mock_db(mocker):
 @pytest.fixture
 def mock_card(mocker):
     return mocker.Mock(spec=Card)
+
+@pytest.fixture
+def mock_confidence_level(mocker):
+    """Fixture to create a mock confidence level."""
+    mock_conf_level = mocker.MagicMock()
+    return mock_conf_level
 
 @pytest.fixture
 def card_data():
@@ -74,6 +81,32 @@ def test_get_cards_by_user_id(mock_db, mock_cards):
     mock_db.query.assert_called_with(Card)
     mock_db.query.return_value.filter_by.assert_called_with(user_id=cards[0].user_id)
 
+def test_get_card_details_by_id(mocker, mock_db, mock_card):
+    """Test fetching a card with its reviews and confidence level"""
+    user_id = 1
+    card_id = 1
+    mock_card.id = card_id
+    mock_card.user_id = user_id
+
+    # Setup the correct mock chain
+    query_mock = mock_db.query.return_value
+    filter_by_mock = query_mock.filter_by.return_value
+    options_mock = filter_by_mock.options.return_value
+    options_mock.first.return_value = mock_card
+
+    # Configure the mocks to reflect the use of direct attributes
+    mock_db.query.configure_mock(return_value=query_mock)
+    query_mock.filter_by.configure_mock(return_value=filter_by_mock)
+    filter_by_mock.options.configure_mock(return_value=options_mock)
+    options_mock.first.configure_mock(return_value=mock_card)
+
+    card = get_card_details_by_id(mock_db, card_id, user_id)
+
+    assert card is mock_card
+    mock_db.query.assert_called_with(Card)
+    query_mock.filter_by.assert_called_with(id=card_id, user_id=user_id)
+    assert filter_by_mock.options.called, "Options for joined loading were not called"
+
 def test_create_card(mock_db, card_data):
     user_id = 1
     card = create_card(mock_db, card_data, user_id)
@@ -96,6 +129,26 @@ def test_create_card_with_required_fields_only(mock_db):
     mock_db.commit.assert_called_once()
     assert card_with_minimum_data.term == minimum_card_data.term
     assert not card_with_minimum_data.example_sentence
+
+def test_create_card_database_error(mock_db, card_data):
+    """Simulate a database error during card creation"""
+    user_id = 1
+    mock_db.add.side_effect = SQLAlchemyError("Simulated database error")
+    with pytest.raises(ValueError) as excinfo:
+        create_card(mock_db, card_data, user_id)
+    assert "database" in str(excinfo.value)
+    mock_db.rollback.assert_called_once()
+
+def test_create_card_with_default_confidence_level(mock_db, card_data, mock_confidence_level):
+    user_id = 1
+    mock_confidence_level.id = 1
+    mock_db.query.return_value.filter.return_value.first.return_value = mock_confidence_level
+
+    card = create_card(mock_db, card_data, user_id)
+
+    assert card.confidence_level_id == mock_confidence_level.id
+    mock_db.add.assert_called_once_with(card)
+    mock_db.commit.assert_called_once()
 
 def test_update_card(mock_db, mock_card, updated_card_data):
     """PUT /cards/{id}: Card update"""
@@ -134,8 +187,9 @@ def test_update_non_existent_card(mock_db, updated_card_data):
     card_id = 10
     user_id = 1
 
-    card = update_card(mock_db, card_id, user_id, updated_card_data)
-    assert card is None
+    with pytest.raises(ValueError) as e:
+        card = update_card(mock_db, card_id, user_id, updated_card_data)
+    assert "No card found" in str(e.value)
 
 def test_delete_card(mock_db, mock_card):
     """DELETE /cards/{id}: Delete card"""

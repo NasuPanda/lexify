@@ -12,6 +12,8 @@ sqlalchemy = "*"
 psycopg2-binary = "*"
 bcrypt = "*"
 pytest-asyncio = "*"
+alembic = "*"
+pytest-env = "*"
 
 [dev-packages]
 pytest-asyncio = "*"
@@ -19,6 +21,7 @@ httpx = "*"
 requests = "*"
 pytest-mock = "*"
 pytest = "*"
+pytest-env = "*"
 
 [requires]
 python_version = "3.10"

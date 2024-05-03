@@ -2,8 +2,7 @@ import sys
 import os
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import engine_from_config, pool
 from alembic import context
 
 # Adding the `/backend` directory to the Python path
@@ -30,7 +29,16 @@ target_metadata = Base.metadata
 # Other setups from the config, if any, should be included below
 # e.g., a custom database URL
 # Ensure the DATABASE_URL is correctly configured
-config.set_main_option('sqlalchemy.url', os.getenv('DATABASE_URL'))
+# config.set_main_option('sqlalchemy.url', os.getenv('DATABASE_URL'))
+
+env_name = os.getenv('ALEMBIC_ENV', 'development')  # Default to development if not set
+if env_name == "test":
+    db_url = os.getenv('TEST_DATABASE_URL')  # Ensure this is set in your environment
+else:
+    db_url = os.getenv('DATABASE_URL')  # Default production/development URL
+
+config.set_main_option('sqlalchemy.url', db_url)
+
 
 def run_migrations_offline():
     """Run migrations in 'offline' mode.

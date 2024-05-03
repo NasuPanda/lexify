@@ -23,6 +23,8 @@ services:
   db_test:
     container_name: postgres_test
     image: postgres:11
+    volumes:
+      - test_db_data:/var/lib/postgresql/data
     environment:
       - POSTGRES_HOST_AUTH_METHOD=trust # for testing
       - POSTGRES_USER=postgres_user
@@ -74,3 +76,4 @@ services:
 # Declaration of the named volume
 volumes:
   db_data:
+  test_db_data:

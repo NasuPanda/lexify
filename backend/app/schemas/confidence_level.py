@@ -1,6 +1,5 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
 from typing import Optional
-from datetime import datetime
 
 # Confidence Level
 class ConfidenceLevelBase(BaseModel):
@@ -10,6 +9,10 @@ class ConfidenceLevelBase(BaseModel):
 
 class ConfidenceLevelRead(ConfidenceLevelBase):
     id: Optional[int] = Field(None, description="The unique identifier for the confidence level")
+    user_id: Optional[int] = Field(None, description="The unique identifier for the owner of this object")
+
+    class Config:
+        orm_mode = True
 
 class ConfidenceLevelCreate(ConfidenceLevelBase):
     pass

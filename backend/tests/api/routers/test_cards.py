@@ -1,122 +1,145 @@
-from fastapi.testclient import TestClient
-from unittest.mock import Mock, patch
-from sqlalchemy.orm import Session
+import pytest
+
+from httpx import AsyncClient
 
 from app.main import app
+from app.services.auth_service import get_user_by_username
+from app.dependencies import get_db, get_current_user
+from app.services.auth_service import get_user_by_username
+from app.services.card_service import get_cards_by_user_id
 from app.models.card_model import Card
+from tests.conftest import TestSessionContext
 
-client = TestClient(app)
+app.dependency_overrides[get_db] = lambda: TestSessionContext.session
 
-def create_mock_card(db, user_id):
-    # This function simulates the insertion of a card into the database
-    # TODO: In a real testing environment, you would use a database session to add and commit this data
-    mock_card = Card(
-        id=1,
-        term="Example",
-        definition="A thing characteristic of its kind or illustrating a general rule.",
-        example_sentence="Pumpkin and penguins!",
-        user_id=user_id
-    )
-    db.add(mock_card)
-    db.commit()
-    return mock_card
+@pytest.fixture
+def user_data():
+    return {"username": "testuser", "password": "password123"}
 
+@pytest.fixture
+def default_confidence_level_data():
+    return {
+        "description": "default confidence level", "interval_days": 3, "is_default": True,
+    }
 
-def test_retrieve_card():
-    user_id = 1  # Mocked user ID for authentication
-
-    # Setup: Mock the dependencies
-    with patch('app.api.routers.cards.get_db') as mock_db, \
-        patch('app.api.routers.cards.get_current_user', return_value={'id': user_id}):
-
-        # Assuming get_db is properly mocked to provide a Session object that would work with our mock
-        mock_session = Mock(spec=Session)
-        mock_db.return_value = mock_session
-
-        # Create a mock card using our helper function
-        create_mock_card(mock_session, user_id)
-
-        # Attempt to retrieve the mock card
-        response = client.get("/cards/1")
-
-    # Assertions to ensure the correct function was called and the response is as expected
-    assert response.status_code == 200
-    assert response.json()['id'] == 1
-    assert response.json()['term'] == "Example"
-
-def test_list_cards():
-    user_id = 1  # Mocked user ID for authentication
-    number_of_cards = 10
-
-    # Setup: Mock the dependencies
-    with patch('app.api.routers.cards.get_db') as mock_db, \
-        patch('app.api.routers.cards.get_current_user', return_value={'id': user_id}):
-
-        # Assuming get_db is properly mocked to provide a Session object that would work with our mock
-        mock_session = Mock(spec=Session)
-        mock_db.return_value = mock_session
-
-        # Create mock cards
-        [create_mock_card(mock_session, user_id) for __ in range(number_of_cards)]
-
-        # Attempt to retrieve the mock card
-        response = client.get("/cards")
-
-    assert response.status_code == 200
-    assert isinstance(response.json(), list) # Verify that a list is returned
-    assert len(response.json()) == number_of_cards
-
-def test_create_new_card():
-    card_data = {
+@pytest.fixture
+def card_data():
+    return {
         "term": "Example",
         "definition": "A thing characteristic of its kind or illustrating a general rule.",
         "example_sentence": "Pumpkin and penguins!"
     }
-    user_id = 1  # Mocked user ID for authentication
 
-    # Mock the dependency that provides the user
-    with patch('app.api.routers.cards.get_current_user', return_value={'id': user_id}):
-        response = client.post("/cards", json=card_data)
+@pytest.fixture
+def async_client():
+    return AsyncClient(app=app, base_url="http://testserver")
 
-    # Check the response from API
+@pytest.mark.asyncio
+async def test_create_new_card(db, async_client, user_data, default_confidence_level_data, card_data):
+    async with async_client as c:
+        # Register a new user and override the current user dependency
+        _res = await c.post("/auth/register", json=user_data)
+        new_user = get_user_by_username(db, user_data["username"])
+        app.dependency_overrides[get_current_user] = lambda: new_user
+        # Register the default confidence level
+        _res = await c.post("/confidence-levels", json=default_confidence_level_data)
+
+        # Store the number of cards at this point (should be 0)
+        initial_card_count = db.query(Card).filter(Card.user_id == new_user.id).count()
+
+        response = await c.post("/cards", json=card_data)
+
     assert response.status_code == 201
-    assert response.json() == {"message": "Card created successfully", "card_id": 1}
+    assert db.query(Card).filter(Card.user_id == new_user.id).count() == initial_card_count + 1
 
-def test_update_card_details():
-    user_id = 1  # Mocked user ID for authentication
+@pytest.mark.asyncio
+async def test_retrieve_card(db, async_client, user_data, default_confidence_level_data, card_data):
+    async with async_client as c:
+        # Register a new user and override the current user dependency
+        _res = await c.post("/auth/register", json=user_data)
+        new_user = get_user_by_username(db, user_data["username"])
+        app.dependency_overrides[get_current_user] = lambda: new_user
+        # Register the default confidence level
+        _res = await c.post("/confidence-levels", json=default_confidence_level_data)
 
-    # Setup: Mock the dependencies
-    with patch('app.api.routers.cards.get_db') as mock_db, \
-        patch('app.api.routers.cards.get_current_user', return_value={'id': user_id}):
+        # Create a new card
+        _res = await c.post("/cards", json=card_data)
+        new_card = get_cards_by_user_id(db, new_user.id)[0]
 
-        # Assuming get_db is properly mocked to provide a Session object that would work with our mock
-        mock_session = Mock(spec=Session)
-        mock_db.return_value = mock_session
+        # Get the newly created card
+        response = await c.get(f"cards/{new_card.id}")
 
-        # Create a mock card using our helper function
-        create_mock_card(mock_session, user_id)
-
-    response = client.put("/cards/1", json={"term": "Updated term"})
+    response_data = response.json()
     assert response.status_code == 200
-    assert response.json()['term'] == "Updated term"
+    assert response_data['id'] == new_card.id
+    assert response_data['term'] == new_card.term
+    assert response_data['definition'] == new_card.definition
 
-def test_delete_card_endpoint(mock_db):
-    user_id = 1  # Mocked user ID for authentication
-    card_id = 1
+@pytest.mark.asyncio
+async def test_list_cards(db, async_client, user_data, default_confidence_level_data, card_data):
+    number_of_cards = 10
 
-    # Setup: Mock the dependencies
-    with patch('app.api.routers.cards.get_db') as mock_db, \
-        patch('app.api.routers.cards.get_current_user', return_value={'id': user_id}):
+    async with async_client as c:
+        # Register a new user and override the current user dependency
+        _res = await c.post("/auth/register", json=user_data)
+        new_user = get_user_by_username(db, user_data["username"])
+        app.dependency_overrides[get_current_user] = lambda: new_user
+        # Register the default confidence level
+        _res = await c.post("/confidence-levels", json=default_confidence_level_data)
 
-        # Assuming get_db is properly mocked to provide a Session object that would work with our mock
-        mock_session = Mock(spec=Session)
-        mock_db.return_value = mock_session
+        # Create new cards
+        for _ in range(number_of_cards):
+            _res = await c.post("/cards", json=card_data)
 
-        # Create a mock card using our helper function
-        create_mock_card(mock_session, user_id)
+        response = await c.get("/cards")
+        response_data = response.json()
 
-        # Get the response from /DELETE
-        response = client.delete(f"/cards/{card_id}")
+    assert response.status_code == 200
+    assert isinstance(response_data, list)
+    assert len(response_data) == number_of_cards
+
+@pytest.mark.asyncio
+async def test_update_card_details(db, async_client, user_data, default_confidence_level_data, card_data):
+    new_term_for_update = "Dawn"
+
+    async with async_client as c:
+        # Register a new user and override the current user dependency
+        _res = await c.post("/auth/register", json=user_data)
+        new_user = get_user_by_username(db, user_data["username"])
+        app.dependency_overrides[get_current_user] = lambda: new_user
+        # Register the default confidence level
+        _res = await c.post("/confidence-levels", json=default_confidence_level_data)
+
+        # Create a new card
+        _res = await c.post("/cards", json=card_data)
+
+        original_card = get_cards_by_user_id(db=db, user_id=new_user.id)[0]
+
+        # Update the card
+        response = await c.put(f"/cards/{original_card.id}", json={"term": new_term_for_update})
+        response_data = response.json()
+
+    assert response.status_code == 200
+    assert response_data['term'] == new_term_for_update
+
+@pytest.mark.asyncio
+async def test_delete_card_endpoint(db, async_client, user_data, default_confidence_level_data, card_data):
+    async with async_client as c:
+        # Register a new user and override the current user dependency
+        _res = await c.post("/auth/register", json=user_data)
+        new_user = get_user_by_username(db, user_data["username"])
+        app.dependency_overrides[get_current_user] = lambda: new_user
+        # Register the default confidence level
+        _res = await c.post("/confidence-levels", json=default_confidence_level_data)
+
+        # Create a new card
+        _res = await c.post("/cards", json=card_data)
+
+        # Store the number of cards at this point
+        card_count_before_deletion = db.query(Card).filter(Card.user_id == new_user.id).count()
+
+        response = await c.delete(f"/cards/{get_cards_by_user_id(db, new_user.id)[0].id}")
 
     assert response.status_code == 204
     assert response.json() == {"message": "Card deleted successfully"}
+    assert db.query(Card).filter(Card.user_id == new_user.id).count() == card_count_before_deletion - 1

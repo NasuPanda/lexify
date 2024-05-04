@@ -8,7 +8,6 @@ from app.schemas.confidence_level import ConfidenceLevelRead
 class CardResponse(BaseModel):
     """GET /cards/{card_id}"""
     id: int
-    user_id: int
     term: str
     definition: str
     example_sentence: Optional[str]
@@ -16,8 +15,13 @@ class CardResponse(BaseModel):
     audio_url: Optional[AnyUrl]
     created_at: datetime
     updated_at: datetime
-    review_schedule: Optional[ReviewScheduleRead] = None
-    confidence_level: Optional[ConfidenceLevelRead] = None
+
+    user_id: int
+    confidence_level_id: int
+
+    # Ensure that attributes exactly match with card_model
+    # review_schedule: Optional[ReviewScheduleRead] = None
+    # confidence_level: Optional[ConfidenceLevelRead] = None
 
     class Config:
         orm_mode = True

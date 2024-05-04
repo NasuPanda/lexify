@@ -13,5 +13,8 @@ class ReviewScheduleRead(ReviewScheduleBase):
     id: int = Field(..., description="The unique identifier for the review schedule")
     card_id: int = Field(..., description="Identifier of the card being reviewed")
 
+    class Config:
+        orm_mode = True
+
 class ReviewScheduleUpdate(ReviewScheduleBase):
     pass

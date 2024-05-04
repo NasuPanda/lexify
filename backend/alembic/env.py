@@ -10,7 +10,7 @@ from alembic import context
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from app.core.database import Base
-from app.models import user_model, card_model, review_model # Import models so that this will recognize them
+from app.models import user_model, card_model, review_model, confidence_level_model # Import models so that this will recognize them
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

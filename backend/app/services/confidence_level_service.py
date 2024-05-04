@@ -22,6 +22,7 @@ def create_confidence_level(db: Session, confidence_data: ConfidenceLevelCreate,
         new_confidence_level = ConfidenceLevel(**confidence_data.dict(), user_id=user_id)
         db.add(new_confidence_level)
         db.commit()
+        db.refresh(new_confidence_level)# Refresh to update instance state from DB
         return new_confidence_level
     except IntegrityError as e:
         db.rollback()

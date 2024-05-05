@@ -13,7 +13,7 @@ def get_review_schedule_by_id(db: Session, review_id: int) -> Optional[ReviewSch
 
 def get_review_schedules_by_user_id(db: Session, user_id: int) -> List[ReviewSchedule]:
     """Retrieve all review schedules belonging to a specific user through their cards."""
-    return db.query(ReviewSchedule).join(Card).filter(Card.user_id == user_id).all()
+    return db.query(ReviewSchedule).filter(ReviewSchedule.user_id == user_id).all()
 
 def create_review_schedule(db: Session, review_data: ReviewScheduleCreate) -> Optional[ReviewSchedule]:
     try:

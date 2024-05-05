@@ -20,5 +20,5 @@ class Card(Base):
     confidence_level_id = Column(Integer, ForeignKey("confidence_levels.id"), nullable=False)  # Added line
 
     user = relationship("User", back_populates="cards")
-    reviews = relationship("ReviewSchedule", back_populates="card")
+    review_schedule = relationship("ReviewSchedule", back_populates="card")
     confidence_level = relationship("ConfidenceLevel")

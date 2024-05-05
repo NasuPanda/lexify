@@ -12,4 +12,5 @@ class User(Base):
     created_at = Column(DateTime, nullable=False, server_default=func.now())
 
     cards = relationship("Card", back_populates="user", cascade="all, delete-orphan")
+    review_schedules = relationship("ReviewSchedule", back_populates="user", cascade="all, delete-orphan")
     confidence_levels = relationship("ConfidenceLevel", back_populates="user", cascade="all, delete-orphan")

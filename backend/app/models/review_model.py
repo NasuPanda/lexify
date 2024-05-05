@@ -9,5 +9,7 @@ class ReviewSchedule(Base):
     review_date = Column(DateTime, nullable=False)
     last_reviewed = Column(DateTime, nullable=True)
 
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     card_id = Column(Integer, ForeignKey("cards.id"), nullable=False)
-    card = relationship("Card", back_populates="reviews")
+    user = relationship("User", back_populates="review_schedules")
+    card = relationship("Card", back_populates="review_schedule")

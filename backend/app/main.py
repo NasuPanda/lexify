@@ -4,13 +4,14 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.models import * # Import models to ensure SQLAlchemy is aware of them
 from app.core.database import engine
-from app.api.routers import cards, auth, reviews
+from app.api.routers import cards, auth, reviews, confidence_levels
 
 app = FastAPI()
 # Mount the routers
 app.include_router(cards.router)
 app.include_router(auth.router)
 app.include_router(reviews.router)
+app.include_router(confidence_levels.router)
 
 app.add_middleware(
     CORSMiddleware,

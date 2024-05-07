@@ -31,7 +31,7 @@ def create_confidence_level(db: Session, confidence_data: ConfidenceLevelCreate,
     except SQLAlchemyError as e:
         db.rollback()
         print(f"Database error occurred: {e}")
-        raise
+        raise ValueError("Failed to create confidence level as an unexpected database error occurred.")
 
 def update_confidence_level(db: Session, confidence_id: int, confidence_data: ConfidenceLevelUpdate) -> Optional[ConfidenceLevel]:
     try:

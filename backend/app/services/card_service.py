@@ -25,7 +25,7 @@ def get_card_details_by_id(db: Session, card_id: int, user_id: int) -> Optional[
     """Retrieve a single card by its ID along with its review schedule and confidence level."""
     return db.query(Card)\
             .filter_by(id=card_id, user_id=user_id)\
-            .options(joinedload(Card.reviews), joinedload(Card.confidence_level))\
+            .options(joinedload(Card.review_schedule), joinedload(Card.confidence_level))\
             .first()
 
 def get_cards_by_user_id(db: Session, user_id: int) -> List[Card]:

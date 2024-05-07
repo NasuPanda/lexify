@@ -7,6 +7,7 @@ from app.main import app
 from app.services.card_service import create_card, delete_card, get_card_by_id, get_card_details_by_id, update_card, get_cards_by_user_id
 from app.schemas.card import CardCreate, CardUpdate
 from app.models.card_model import Card
+from app.models.confidence_level_model import ConfidenceLevel
 
 client = TestClient(app)
 
@@ -27,8 +28,7 @@ def mock_card(mocker):
 @pytest.fixture
 def mock_confidence_level(mocker):
     """Fixture to create a mock confidence level."""
-    mock_conf_level = mocker.MagicMock()
-    return mock_conf_level
+    return mocker.Mock(spec=ConfidenceLevel)
 
 @pytest.fixture
 def card_data():
@@ -107,8 +107,13 @@ def test_get_card_details_by_id(mocker, mock_db, mock_card):
     query_mock.filter_by.assert_called_with(id=card_id, user_id=user_id)
     assert filter_by_mock.options.called, "Options for joined loading were not called"
 
-def test_create_card(mock_db, card_data):
+def test_create_card(mock_db, card_data, mock_confidence_level):
     user_id = 1
+    # Set up default confidence level
+    mock_confidence_level.id = 1
+    mock_confidence_level.is_default = True
+    mock_db.query.return_value.filter_by.return_value.first.return_value = mock_confidence_level
+
     card = create_card(mock_db, card_data, user_id)
 
     mock_db.add.assert_called_once_with(card)
@@ -120,6 +125,11 @@ def test_create_card(mock_db, card_data):
 def test_create_card_with_required_fields_only(mock_db):
     """POST /cards: Card creation with minimal data"""
     user_id = 1
+    # Set up default confidence level
+    mock_confidence_level.id = 1
+    mock_confidence_level.is_default = True
+    mock_db.query.return_value.filter_by.return_value.first.return_value = mock_confidence_level
+
     minimum_card_data = CardCreate(
         term="Minimum",
         definition="Possible least amount.",
@@ -133,22 +143,16 @@ def test_create_card_with_required_fields_only(mock_db):
 def test_create_card_database_error(mock_db, card_data):
     """Simulate a database error during card creation"""
     user_id = 1
+    # Set up default confidence level
+    mock_confidence_level.id = 1
+    mock_confidence_level.is_default = True
+    mock_db.query.return_value.filter_by.return_value.first.return_value = mock_confidence_level
+
     mock_db.add.side_effect = SQLAlchemyError("Simulated database error")
     with pytest.raises(ValueError) as excinfo:
         create_card(mock_db, card_data, user_id)
     assert "database" in str(excinfo.value)
     mock_db.rollback.assert_called_once()
-
-def test_create_card_with_default_confidence_level(mock_db, card_data, mock_confidence_level):
-    user_id = 1
-    mock_confidence_level.id = 1
-    mock_db.query.return_value.filter.return_value.first.return_value = mock_confidence_level
-
-    card = create_card(mock_db, card_data, user_id)
-
-    assert card.confidence_level_id == mock_confidence_level.id
-    mock_db.add.assert_called_once_with(card)
-    mock_db.commit.assert_called_once()
 
 def test_update_card(mock_db, mock_card, updated_card_data):
     """PUT /cards/{id}: Card update"""

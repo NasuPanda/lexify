@@ -7,15 +7,15 @@ from app.schemas.confidence_level import ConfidenceLevelCreate, ConfidenceLevelU
 
 def get_confidence_level_by_id(db: Session, confidence_id: int) -> Optional[ConfidenceLevel]:
     """Retrieve a single confidence level by its ID."""
-    return db.query(ConfidenceLevel).filter(ConfidenceLevel.id == confidence_id).first()
+    return db.query(ConfidenceLevel).filter_by(id=confidence_id).first()
 
 def get_confidence_levels_by_user_id(db: Session, user_id: int) -> List[ConfidenceLevel]:
     """Retrieve all confidence levels belonging to a specific user."""
-    return db.query(ConfidenceLevel).filter(ConfidenceLevel.user_id == user_id).all()
+    return db.query(ConfidenceLevel).filter_by(user_id=user_id).all()
 
 def get_default_confidence_level(db: Session) -> Optional[ConfidenceLevel]:
     """Retrieve the default confidence level."""
-    return db.query(ConfidenceLevel).filter(ConfidenceLevel.is_default == True).first()
+    return db.query(ConfidenceLevel).filter_by(is_default=True).first()
 
 def create_confidence_level(db: Session, confidence_data: ConfidenceLevelCreate, user_id: int) -> Optional[ConfidenceLevel]:
     try:

@@ -49,7 +49,6 @@ def create_card(db: Session, card_data: CardCreate, user_id: int) -> Optional[Ca
         print(f"Failed to create card due to a database error: {str(e)}")
         raise ValueError("Failed to create card due to a database error.")
 
-
 def create_review_schedule_for_card(db: Session, card_id: int, review_data: ReviewScheduleCreate) -> Optional[ReviewSchedule]:
     """Create a new review schedule for a card."""
     review_schedule = ReviewSchedule(**review_data.dict(), card_id=card_id)
